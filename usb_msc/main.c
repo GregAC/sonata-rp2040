@@ -13,6 +13,7 @@
 #include "bsp/board.h"
 #include "tusb.h"
 #include "hardware/spi.h"
+#include "hardware/flash.h"
 #include "fpga_program.h"
 #include "fat_util.h"
 #include "config.h"
@@ -22,6 +23,7 @@
 #include "crc32.h"
 #include "tests.h"
 #include "uf2.h"
+#include "preload.h"
 
 #define spi_default PICO_DEFAULT_SPI_INSTANCE
 #define FPGA_CONFIG_LED 18
@@ -248,19 +250,23 @@ int main()
     PRINT_CRIT("FW_VER %d.%d.%d", FW_MAJOR_VER, FW_MINOR_VER, FW_DEBUG_VER);
     // test_fw_flash();
 
+    set_default_config(&CONFIG);
+
+    check_pico_flash_for_firmware_preload();
+    check_pico_flash_for_bitstream_preload();
     // check first 256 bytes to see if there's a bitstream in flash
     check_flash_for_bitstreams();
     check_flash_for_firmware();
 
     PRINT_INFO("Using slot %d", read_bitstream_select_pins());
 
+    gpio_put(USER_LEDS[0], 1);
     startup_program_bitstream();
 
     gpio_init(FPGA_CONFIG_LED);
     gpio_set_dir(FPGA_CONFIG_LED, GPIO_OUT);
 
     // Write default config values to CONFIG.txt
-    set_default_config(&CONFIG);
     write_config_to_file(get_filesystem(), &CONFIG);
 
     // Try parsing default config to make sure it works
@@ -271,19 +277,22 @@ int main()
         int i = fat_strlen(get_filesystem()->root_dir[0].filename);
     }
 
+    gpio_put(USER_LEDS[1], 1);
+
     tud_init(BOARD_TUD_RHPORT);
 
     while (true) {
         tud_task(); // tinyusb device task
-        led_blinking_task();
+        gpio_put(USER_LEDS[2], 1);
+        //led_blinking_task();
 
-        // Light up LED associated with selected flash slot
-        for (uint8_t i = 0; i < ARR_LEN(USER_LEDS); i++) {
-            if (!gpio_get(BITSTREAM_SELECT_PINS[i]))
-                gpio_put(USER_LEDS[i], 0);
-            else
-                gpio_put(USER_LEDS[i], 1);
-        }
+        //// Light up LED associated with selected flash slot
+        //for (uint8_t i = 0; i < ARR_LEN(USER_LEDS); i++) {
+        //    if (!gpio_get(BITSTREAM_SELECT_PINS[i]))
+        //        gpio_put(USER_LEDS[i], 0);
+        //    else
+        //        gpio_put(USER_LEDS[i], 1);
+        //}
 
         // Light up LED FPGA Config LED if FPGA done pin is high
         if (!FPGA_ISDONE()) {

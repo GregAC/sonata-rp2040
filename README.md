@@ -2,6 +2,24 @@
 
 ## Usage
 
+### Firmware load via RP2040 bootloader
+
+This firmware include a feature that allows Sonata firmware to be written using
+the RP2040 bootloader. A specially crafted UF2 is created from an already built
+sonata firmware UF2 using the `make_rp2040_uf2.sh` script in `utils/`.
+
+```
+cd utils
+./make_rp2040_uf2 /path/to/sonata/firmware.uf2
+# Will create /path/to/sonata/firmware_rp2040.uf2 which can be copied to the
+# RP2040 boot loader virtual USB drive.
+```
+
+Once this firmware is loaded into the RP2040 power cycle the board and again
+start up in RP2040 bootload mode (press the RP2040 boot button whilst
+powering-up). Copy the special UF2 to the RP2040 virtual USB drive. The RP2040
+will reboot and load the Sonata firmware.
+
 ### Copying Bitstreams/Firmware
 
 Once plugged in, the Sonata board should enumerate as a USB mass storage device. Bitstreams
@@ -53,6 +71,11 @@ should be setup, so you can omit the `PICO_SDK_PATH` part of the cmake command. 
 Windows uses ninja instead of make by default.
 
 ### Building
+
+This firmware includes a feature that preloads an FPGA bitstream from the RP2040
+flash. That bitstream is built into the firmware during compliation. An FPGA
+bitstream file named `sonata-fpga-image.bit` must be included under the build
+directory in the `usb_msc` directory for the build to work.
 
 ```bash
 mkdir build

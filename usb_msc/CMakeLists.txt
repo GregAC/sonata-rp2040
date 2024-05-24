@@ -13,6 +13,7 @@ target_sources(usb_msc PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/crc32.c
         ${CMAKE_CURRENT_LIST_DIR}/tests.c
         ${CMAKE_CURRENT_LIST_DIR}/uf2.c
+        ${CMAKE_CURRENT_LIST_DIR}/preload.c
         )
 
 target_include_directories(usb_msc PUBLIC
@@ -42,10 +43,10 @@ if (NOT ("${DEBUG_LEVEL}" MATCHES "^(0|1|2|3|4|5)$"))
         set(DEBUG_LEVEL "1")
 endif()
 
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-        message("Building as Debug with level ${DEBUG_LEVEL}" )
-        add_compile_definitions("DEBUG_LEVEL=${DEBUG_LEVEL}")
-endif()
+#if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+message("Building as Debug with level ${DEBUG_LEVEL}" )
+add_compile_definitions("DEBUG_LEVEL=${DEBUG_LEVEL}")
+#endif()
 
 if (TESTING_BUILD)
         message("Doing test build" )
